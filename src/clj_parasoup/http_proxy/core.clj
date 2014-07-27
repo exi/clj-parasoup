@@ -95,7 +95,8 @@
               :as (when (re-find #"(?i)(\.gif|\.png|\.jpg|\.jpeg)$" (:uri request))
                     :byte-array)
               :body (wrap-body (:body request))
-              :follow-redirects false}
+              :follow-redirects false
+              :timeout 2000}
         response-channel (as/chan)]
     (as/go
       (let [response (as/<! (wrap-request opts))
