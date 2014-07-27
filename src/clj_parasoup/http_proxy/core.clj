@@ -1,5 +1,5 @@
 (ns clj-parasoup.http-proxy.core
-  (:import (org.jboss.netty.buffer ChannelBuffer))
+  (:import [org.jboss.netty.buffer ChannelBuffer])
   (:require [clojure.core.async :as as]
             [clojure.string :as string]
             [org.httpkit.client :as http]
@@ -44,8 +44,8 @@
                   (fn [resp] (as/go (as/>! output resp))))
     output))
 
-(defn postprocess-soup-headers [headers domain]
-  (-> headers
+(defn postprocess-soup-headers [response domain]
+  (-> (:headers response)
       (umap/map-over-map-values (fn [v] (if (coll? v)
                                           (map (partial string/lower-case) v)
                                           (string/lower-case v))))
@@ -59,7 +59,7 @@
       (dissoc "server" "status" "connection" "content-encoding" "date" "content-length")))
 
 (defn postprocess-soup-response [response domain]
-  (assoc response :headers (postprocess-soup-headers (:headers response) domain)
+  (assoc response :headers (postprocess-soup-headers response domain)
                   :body (if (string? (:body response))
                           (->> (:body response)
                                (text-soup->domain domain)
@@ -75,7 +75,7 @@
             (str "?" (:query-string request))
             "")))
 
-(defn genereate-request-headers [domain headers scheme]
+(defn generate-request-headers [headers domain scheme]
   (dissoc
    (header-domain->soup domain headers (= "https://" scheme))
    "host" "content-length" "accept-encoding"))
@@ -91,15 +91,15 @@
         newtarget (text-domain->soup domain (format-url request headers scheme))
         opts {:url newtarget
               :method (:request-method request)
-              :headers (genereate-request-headers domain headers scheme)
+              :headers (generate-request-headers headers domain scheme)
               :as (when (re-find #"(?i)(\.gif|\.png|\.jpg|\.jpeg)$" (:uri request))
                     :byte-array)
               :body (wrap-body (:body request))
               :follow-redirects false}
         response-channel (as/chan)]
     (as/go
-      (let [response (wrap-request opts)
-            processed-response (postprocess-soup-response (as/<! response) domain)]
+      (let [response (as/<! (wrap-request opts))
+            processed-response (postprocess-soup-response response domain)]
         (as/>! response-channel (reduce
                                   #(assoc %1 %2 (get processed-response %2))
                                   {}

@@ -1,8 +1,7 @@
 (ns clj-parasoup.http.service
   (:require [clojure.tools.logging :as log]
             [clj-parasoup.http.core :as core]
-            [puppetlabs.trapperkeeper.core :as trapperkeeper]
-            ))
+            [puppetlabs.trapperkeeper.core :as trapperkeeper]))
 
 
 (defprotocol HttpService
@@ -20,4 +19,5 @@
                                 (log/info "Stopping httpservice")
                                 ((:server-stop context))
                                 context)
-                          (set-request-handler [this new-handler](reset! (:handler (service-context this)) new-handler)))
+                          (set-request-handler [this new-handler]
+                                               (reset! (:handler (service-context this)) new-handler)))

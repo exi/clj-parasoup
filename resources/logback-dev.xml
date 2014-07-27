@@ -5,8 +5,9 @@
         </encoder>
     </appender>
 
-    <logger name="org.eclipse.jetty.server" level="warn"/>
-    <logger name="org.eclipse.jetty.util.log" level="warn"/>
+    <logger name="org.eclipse.jetty.server" level="info"/>
+    <logger name="org.eclipse.jetty.util.log" level="info"/>
+    <logger name="org.apache.hadoop.metrics2.lib.MutableMetricsFactory" level="info"/>
 
     <root level="info">
         <appender-ref ref="STDOUT" />

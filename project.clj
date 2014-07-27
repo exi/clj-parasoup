@@ -12,7 +12,9 @@
                  [http-kit "2.1.16"]
                  [puppetlabs/trapperkeeper ~tk-version :classifier "test"]
                  [lein-light-nrepl "0.0.18"]
-                 [aleph "0.3.2"]]
+                 [aleph "0.3.2"]
+                 [org.apache.hbase/hbase-client "0.98.3-hadoop2"]
+                 [org.apache.hbase/hbase-common "0.98.3-hadoop2"]]
 
   :test-paths ["test" "test-resources"]
 
@@ -25,7 +27,8 @@
 
   :aliases {"tk" ["trampoline" "run" "--config" "resources/config.ini" "--bootstrap-config" "resources/bootstrap.cfg"]}
 
-  :plugins [[lein-swank "1.4.5"]]
+  :plugins [[lein-swank "1.4.5"]
+            [lein-sub "0.3.0"]]
 
   :repl-options {:nrepl-middleware [lighttable.nrepl.handler/lighttable-ops]}
 
