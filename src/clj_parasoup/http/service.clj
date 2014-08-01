@@ -18,6 +18,6 @@
                           (stop [this context]
                                 (log/info "Stopping httpservice")
                                 ((:server-stop context))
-                                context)
+                                (dissoc context :server-stop :handler))
                           (set-request-handler [this new-handler]
                                                (reset! (:handler (service-context this)) new-handler)))
