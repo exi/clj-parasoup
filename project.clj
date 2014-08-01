@@ -14,7 +14,9 @@
                  [lein-light-nrepl "0.0.18"]
                  [aleph "0.3.2"]
                  [org.apache.hbase/hbase-client "0.98.3-hadoop2"]
-                 [org.apache.hbase/hbase-common "0.98.3-hadoop2"]]
+                 [org.apache.hbase/hbase-common "0.98.3-hadoop2"]
+                 [org.clojure/data.codec "0.1.0"]
+                 [com.taoensso/nippy "2.6.3"]]
 
   :test-paths ["test" "test-resources"]
 

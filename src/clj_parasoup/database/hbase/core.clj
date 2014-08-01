@@ -1,7 +1,8 @@
 (ns clj-parasoup.database.hbase.core
   (:require [clojure.core.async :as as]
             [clj-hbase.core :as hb]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [taoensso.nippy :as nippy]))
 
 (defn get-first-column-value [result family]
   (let [columns (get result family)
@@ -32,7 +33,24 @@
     (as/to-chan [data])
     (as/to-chan [])))
 
+(defn put-token [db token-table token data]
+  (when (not (nil? token))
+    (hb/put db token-table token (nippy/freeze data))))
+
+(defn get-token [db token-table token]
+  (let [result (hb/get
+                db
+                token-table
+                token
+                {}
+                {:family #(keyword (String. %))})
+        data (get-first-column-value result :data)]
+    (nippy/thaw data)))
 
 (defn ensure-files-table [db table-name]
   (when (not (hb/table-exists? db table-name))
     (hb/create-table db table-name [:byte-data :content-type])))
+
+(defn ensure-tokens-table [db table-name]
+  (when (not (hb/table-exists? db table-name))
+    (hb/create-table db table-name [:data])))

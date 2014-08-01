@@ -13,11 +13,15 @@
   [[:ConfigService get-in-config]
    [:HttpService set-request-handler]
    [:HttpProxyService proxy-request]
+   [:ShutdownService request-shutdown]
+   HttpAuthService
    DatabaseService]
   (start [this context]
          (log/info "Starting requestmanagerservice")
          (set-request-handler (core/create-request-dispatcher
-                               (get-in-config [:parasoup :real-domain])
-                               proxy-request
-                               (get-service this :DatabaseService)))
+                               {:domain (get-in-config [:parasoup :real-domain])
+                                :db (get-service this :DatabaseService)
+                                :auth (get-service this :HttpAuthService)
+                                :proxy-fn proxy-request
+                                :shutdown request-shutdown}))
          context))

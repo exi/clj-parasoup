@@ -17,7 +17,12 @@
                db (hb/create-database {:resources [resource]})]
            (log/info "using resource" resource)
            (core/ensure-files-table db (get-in-config [:hbase :files-table]))
+           (core/ensure-tokens-table db (get-in-config [:hbase :tokens-table]))
            (assoc context :db db)))
+  (stop [this context]
+        (log/info "Stopping hbase database")
+        (hb/disconnect (:db context))
+        (dissoc context :db))
   (put-file [this file-name byte-data content-type]
             (core/put-file (:db (service-context this))
                            (get-in-config [:hbase :files-table])
@@ -27,4 +32,13 @@
   (get-file [this file-name]
             (core/get-file (:db (service-context this))
                            (get-in-config [:hbase :files-table])
-                           file-name)))
+                           file-name))
+  (put-token [this token data]
+             (core/put-token (:db (service-context this))
+                             (get-in-config [:hbase :files-table])
+                             token
+                             data))
+  (get-token [this token]
+             (core/get-token (:db (service-context this))
+                             (get-in-config [:hbase :files-table])
+                             token)))
