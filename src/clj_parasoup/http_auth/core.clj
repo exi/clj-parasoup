@@ -58,8 +58,7 @@
         new-response)))))
 
 (defn handle-auth-request [db username password domain opts next-fn]
-  (if (or (= "127.0.0.1" (get-in opts [:request :remote-addr]))
-          (authenticated? db username password (:request opts)))
+  (if (authenticated? db username password (:request opts))
     (next-fn opts)
     (if (successfull-auth-attempt? username password (:request opts))
       (wrap-successfull-auth-attempt db username domain opts next-fn)
