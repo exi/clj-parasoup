@@ -1,5 +1,5 @@
-(def tk-version "0.3.4")
-(def ks-version "0.5.3")
+(def tk-version "0.4.2")
+(def ks-version "0.7.2")
 
 (defproject clj-parasoup "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
@@ -34,6 +34,4 @@
 
   :repl-options {:nrepl-middleware [lighttable.nrepl.handler/lighttable-ops]}
 
-  :main puppetlabs.trapperkeeper.main
-
-  )
+  :main puppetlabs.trapperkeeper.main)

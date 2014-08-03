@@ -19,10 +19,11 @@
   (start [this context]
          (log/info "Starting requestmanagerservice")
          (set-request-handler (core/create-request-dispatcher
-                               {:domain (str
-                                         (get-in-config [:parasoup :domain])
-                                         ":"
-                                         (get-in-config [:parasoup :port]))
+                               {:domain (let [domain (get-in-config [:parasoup :domain])
+                                              port (Integer. (get-in-config [:parasoup :port]))]
+                                          (if (= 80 port)
+                                            domain
+                                            (str domain ":" port)))
                                 :db (get-service this :DatabaseService)
                                 :auth (get-service this :HttpAuthService)
                                 :proxy-fn proxy-request
