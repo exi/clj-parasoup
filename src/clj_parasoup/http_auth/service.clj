@@ -5,21 +5,17 @@
 
 
 (defprotocol HttpAuthService
-  (authenticated? [this request])
-  (send-auth-request [this response-channel]))
+  (handle-request [this opts next-fn]))
 
 (trapperkeeper/defservice
   http-auth-service
   HttpAuthService
   [[:ConfigService get-in-config]
    DatabaseService]
-  (authenticated? [this request]
-                  (core/authenticated?
+  (handle-request [this opts next-fn]
+                  (core/handle-auth-request
                    (get-service this :DatabaseService)
                    (get-in-config [:http-auth :username])
                    (get-in-config [:http-auth :password])
-                   request))
-  (send-auth-request [this response-channel]
-                  (core/send-auth-request
-                   (get-service this :DatabaseService)
-                   response-channel)))
+                   (get-in-config [:parasoup :domain])
+                   opts next-fn)))

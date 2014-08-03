@@ -19,7 +19,10 @@
   (start [this context]
          (log/info "Starting requestmanagerservice")
          (set-request-handler (core/create-request-dispatcher
-                               {:domain (get-in-config [:parasoup :real-domain])
+                               {:domain (str
+                                         (get-in-config [:parasoup :domain])
+                                         ":"
+                                         (get-in-config [:parasoup :port]))
                                 :db (get-service this :DatabaseService)
                                 :auth (get-service this :HttpAuthService)
                                 :proxy-fn proxy-request

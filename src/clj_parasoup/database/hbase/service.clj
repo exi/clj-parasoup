@@ -35,10 +35,10 @@
                            file-name))
   (put-token [this token data]
              (core/put-token (:db (service-context this))
-                             (get-in-config [:hbase :files-table])
+                             (get-in-config [:hbase :tokens-table])
                              token
                              data))
   (get-token [this token]
              (core/get-token (:db (service-context this))
-                             (get-in-config [:hbase :files-table])
+                             (get-in-config [:hbase :tokens-table])
                              token)))

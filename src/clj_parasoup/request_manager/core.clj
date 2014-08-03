@@ -13,6 +13,10 @@
   (as/go (as/>! response-channel {:status 200
                                   :body (:byte-data file-data)
                                   :headers {"content-type" (:content-type file-data)}})))
+(defn log-access [request hit]
+  (log/info
+   (if hit "hit" "miss")
+   (str (get-in request [:headers "host"]) (:uri request))))
 
 (defn handle-authenticated-request
   [opts]
@@ -22,11 +26,13 @@
      (if-let [file-data (when (asset-request? request)
                           (as/<! (dbp/get-file (:db opts) (:uri request))))]
        (do
+         (log-access request true)
          (responde-with-data response-channel file-data))
        (let [response (as/<! ((:proxy-fn opts)
                               request
                               (:domain opts)))]
          (when (and (= 200 (:status response)) (asset-request? request))
+           (log-access request false)
            (dbp/put-file (:db opts)
                          (:uri request)
                          (:body response)
@@ -37,11 +43,8 @@
   [opts]
   (let [request (:request opts)
         auth-service (:auth opts)]
-    (log/info (get-in request [:headers "host"]) (:uri request))
     (when (= "/shutdown" (:uri request)) ((:shutdown opts)))
-    (if (not (auth/authenticated? auth-service request))
-      (auth/send-auth-request auth-service (:response-channel opts))
-      (handle-authenticated-request))))
+    (auth/handle-request auth-service opts handle-authenticated-request)))
 
 (defn create-request-dispatcher [opts]
   (fn [response-channel request]
