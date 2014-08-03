@@ -96,7 +96,7 @@
                     :byte-array)
               :body (wrap-body (:body request))
               :follow-redirects false
-              :timeout 2000}
+              :timeout 10000}
         response-channel (as/chan)]
     (as/go
       (let [response (as/<! (wrap-request opts))
