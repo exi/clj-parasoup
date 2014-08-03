@@ -31,7 +31,8 @@
        (let [response (as/<! ((:proxy-fn opts)
                               request
                               (:domain opts)))]
-         (when (and (= 200 (:status response)) (asset-request? request))
+         (when (and (= 200 (:status response))
+                    (asset-request? request))
            (log-access request false)
            (dbp/put-file (:db opts)
                          (:uri request)
