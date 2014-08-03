@@ -11,7 +11,10 @@
     data))
 
 (defn put-file [db files-table file-name byte-data content-type]
-  (when (not (and (nil? file-name) (nil? content-type)))
+  (when (not (and
+              (nil? file-name)
+              (nil? content-type)
+              (not (instance? (type (byte-array 0)) byte-data))))
     (hb/put db files-table file-name {:byte-data byte-data
                                       :content-type content-type})))
 
