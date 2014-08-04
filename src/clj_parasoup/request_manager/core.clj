@@ -45,7 +45,9 @@
   (let [request (:request opts)
         auth-service (:auth opts)]
     (when (= "/shutdown" (:uri request)) ((:shutdown opts)))
-    (auth/handle-request auth-service opts handle-authenticated-request)))
+    (if (asset-request? request)
+      (handle-authenticated-request opts)
+      (auth/handle-request auth-service opts handle-authenticated-request))))
 
 (defn create-request-dispatcher [opts]
   (fn [response-channel request]
