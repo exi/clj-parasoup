@@ -36,6 +36,9 @@
     (as/to-chan [data])
     (as/to-chan [])))
 
+(defn check-file [db files-table file-name]
+  (as/to-chan [(hb/exists db files-table file-name {})]))
+
 (defn put-token [db token-table token data]
   (log/info "put token" token data)
   (when (not (nil? token))

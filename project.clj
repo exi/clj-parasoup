@@ -16,7 +16,8 @@
                  [org.apache.hbase/hbase-client "0.98.3-hadoop2"]
                  [org.apache.hbase/hbase-common "0.98.3-hadoop2"]
                  [org.clojure/data.codec "0.1.0"]
-                 [com.taoensso/nippy "2.6.3"]]
+                 [com.taoensso/nippy "2.6.3"]
+                 [digest "1.4.4"]]
 
   :test-paths ["test" "test-resources"]
 

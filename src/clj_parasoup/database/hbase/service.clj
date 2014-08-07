@@ -33,6 +33,10 @@
             (core/get-file (:db (service-context this))
                            (get-in-config [:hbase :files-table])
                            file-name))
+  (check-file [this file-name]
+              (core/check-file (:db (service-context this))
+                             (get-in-config [:hbase :files-table])
+                             file-name))
   (put-token [this token data]
              (core/put-token (:db (service-context this))
                              (get-in-config [:hbase :tokens-table])
