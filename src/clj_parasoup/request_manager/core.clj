@@ -6,13 +6,17 @@
             [clj-parasoup.http-auth.service :as auth]
             [clojure.tools.logging :as log]))
 
+(def max-asset-cache-lifetime-in-seconds (* 60 60 24 365))
+
 (defn asset-request? [request]
   (not (nil? (re-find #"^asset-" (get-in request [:headers "host"])))))
 
 (defn responde-with-data [response-channel file-data]
-  (as/go (as/>! response-channel {:status 200
-                                  :body (:byte-data file-data)
-                                  :headers {"content-type" (:content-type file-data)}})))
+  (as/go (as/>! response-channel
+                {:status 200
+                 :body (:byte-data file-data)
+                 :headers {"content-type" (:content-type file-data)
+                           "cache-control" (str "public, max-age=" max-asset-cache-lifetime-in-seconds)}})))
 (defn log-access [request hit]
   (log/info
    (if hit "hit" "miss")
