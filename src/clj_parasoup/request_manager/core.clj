@@ -8,7 +8,37 @@
             [clojure.tools.logging :as log]
             [digest]))
 
-(def gfycat-embed-code "<script>(function(d, t){var g = d.createElement(t),s = d.getElementsByTagName(t)[0];g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';s.parentNode.insertBefore(g, s);}(document, 'script'));</script>")
+(def gfycat-embed-code "<script>
+  var lastGfy = new Date().getTime();
+  function removeGfyItems() {
+    var items = document.querySelectorAll('.gfyitem');
+    for (var i = 0; i < items.length ; i++) {
+      items[i].removeAttribute('class');
+    }
+  }
+  function updateGfy() {
+    if (new Date().getTime() - lastGfy > 1000) {
+      gfyCollection.init();
+      lastGfy = new Date().getTime();
+      removeGfyItems();
+      console.log('update');
+    }
+  }
+  function loadGfy() {
+    if (typeof gfyCollection !== 'undefined') return;
+    console.log(\"gfy!\");
+    (function(d, t){var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+    g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';
+    s.parentNode.insertBefore(g, s);}(document, 'script'));
+    document.body.addEventListener('DOMSubtreeModified', updateGfy, false);
+  }
+  </script>")
+
+(def gfycat-run-code "<script type=\"text/javascript\">
+  if (loadGfy) {
+    loadGfy();
+  }
+  </script>")
 
 (def max-asset-cache-lifetime-in-seconds (* 60 60 24 365))
 
@@ -35,8 +65,10 @@
                            "cache-control" cache-control-header
                            "etag" (create-etag (:request opts))}})))
 
-(defn add-gfycat-headers [body]
-  (string/replace body #"</body>" (str gfycat-embed-code "</body>")))
+(defn add-gfycat-to-head [body]
+  (-> body
+      (string/replace #"</head>" (str gfycat-embed-code "</head>") )
+      (string/replace  #"</body>" (str gfycat-run-code "</body>"))))
 
 (defn fetch-gfys [gifs opts]
    (into
@@ -71,7 +103,7 @@
           response
           :body
           (-> body
-              (add-gfycat-headers)
+              (add-gfycat-to-head)
               (replace-found-gfys gfys))))))
 
 (defn responde-from-soup [opts]
