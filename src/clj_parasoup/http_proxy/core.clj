@@ -4,7 +4,6 @@
             [clojure.string :as string]
             [org.httpkit.client :as http]
             [clojure.tools.logging :as log]
-            [clojure.java.io :as io]
             [clj-parasoup.util.map :as umap]))
 
 (defn text-domain->soup [domain text]

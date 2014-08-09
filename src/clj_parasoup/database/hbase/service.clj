@@ -33,6 +33,15 @@
             (core/get-file (:db (service-context this))
                            (get-in-config [:hbase :files-table])
                            file-name))
+  (get-gfy [this file-name]
+           (core/get-gfy (:db (service-context this))
+                         (get-in-config [:hbase :files-table])
+                         file-name))
+  (put-gfy [this file-name gfy-name]
+           (core/put-gfy (:db (service-context this))
+                         (get-in-config [:hbase :files-table])
+                         file-name
+                         gfy-name))
   (check-file [this file-name]
               (core/check-file (:db (service-context this))
                              (get-in-config [:hbase :files-table])

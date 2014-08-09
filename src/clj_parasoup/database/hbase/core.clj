@@ -31,10 +31,31 @@
       {:byte-data (get-first-column-value result :byte-data)
        :content-type (get-first-column-value result :content-type)})))
 
+(defn fetch-gfy [db files-table file-name]
+  (let [result (hb/get
+                db
+                files-table
+                file-name
+                {:family :gfy-name}
+                {:family #(keyword (String. %))
+                 :value {:gfy-name {:* #(String. %)}}})]
+    (if (empty? result)
+      nil
+      (get-first-column-value result :gfy-name))))
+
 (defn get-file [db files-table file-name]
   (if-let [data (fetch-file db files-table file-name)]
     (as/to-chan [data])
     (as/to-chan [])))
+
+(defn get-gfy [db files-table file-name]
+  (if-let [data (fetch-gfy db files-table file-name)]
+    (as/to-chan [data])
+    (as/to-chan [])))
+
+(defn put-gfy [db files-table file-name gfy-name]
+  (when (not (or (nil? file-name) (nil? gfy-name)))
+    (hb/put db files-table file-name {:gfy-name gfy-name})))
 
 (defn check-file [db files-table file-name]
   (as/to-chan [(hb/exists db files-table file-name {})]))
@@ -56,7 +77,7 @@
 
 (defn ensure-files-table [db table-name]
   (when (not (hb/table-exists? db table-name))
-    (hb/create-table db table-name [:byte-data :content-type])))
+    (hb/create-table db table-name [:byte-data :content-type :gfy-name])))
 
 (defn ensure-tokens-table [db table-name]
   (when (not (hb/table-exists? db table-name))

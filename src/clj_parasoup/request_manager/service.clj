@@ -15,7 +15,8 @@
    [:HttpProxyService proxy-request]
    [:ShutdownService request-shutdown]
    HttpAuthService
-   DatabaseService]
+   DatabaseService
+   [:GfyFetcher fetch]]
   (start [this context]
          (log/info "Starting requestmanagerservice")
          (set-request-handler (core/create-request-dispatcher
@@ -26,6 +27,7 @@
                                             (str domain ":" port)))
                                 :db (get-service this :DatabaseService)
                                 :auth (get-service this :HttpAuthService)
+                                :gfy-fetcher fetch
                                 :proxy-fn proxy-request
                                 :shutdown request-shutdown}))
          context))

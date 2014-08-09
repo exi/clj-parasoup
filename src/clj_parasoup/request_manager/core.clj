@@ -4,8 +4,11 @@
             [org.httpkit.client :as http]
             [clj-parasoup.database.protocol :as dbp]
             [clj-parasoup.http-auth.service :as auth]
+            [clj-parasoup.util.util :as util]
             [clojure.tools.logging :as log]
             [digest]))
+
+(def gfycat-embed-code "<script>(function(d, t){var g = d.createElement(t),s = d.getElementsByTagName(t)[0];g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';s.parentNode.insertBefore(g, s);}(document, 'script'));</script>")
 
 (def max-asset-cache-lifetime-in-seconds (* 60 60 24 365))
 
@@ -32,6 +35,48 @@
                            "cache-control" cache-control-header
                            "etag" (create-etag (:request opts))}})))
 
+(defn add-gfycat-headers [body]
+  (string/replace body #"</body>" (str gfycat-embed-code "</body>")))
+
+(defn fetch-gfys [gifs opts]
+  (log/info "fetch gfys for" gifs)
+   (into
+    []
+    (->>
+     (map
+      (fn [gif]
+        (let [fetched {:gif gif :gfy (as/<!! (dbp/get-gfy (:db opts) (util/extract-gif-uri-from-url gif)))}]
+          (when (nil? (:gfy fetched))
+            ((:gfy-fetcher opts) gif))
+          fetched))
+      gifs)
+     (remove #(nil? (:gfy %1))))))
+
+(defn replace-found-gfys [body gfy-map]
+  (log/info "replace gfys" gfy-map)
+  (reduce
+   (fn [body gfy]
+     (let [new  (string/replace
+                 body
+                 (str "src=\"" (:gif gfy) "\"")
+                 (str "class=\"gfyitem\" data-id=\"" (:gfy gfy) "\""))]
+       (log/info gfy)
+       new))
+   body
+   gfy-map))
+
+(defn gif->gfycat [response opts]
+    (if (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
+      response
+      (let [body (:body response)
+            gfys (fetch-gfys (re-seq #"http://asset-[^\"]+\.gif" body) opts)]
+        (assoc
+          response
+          :body
+          (-> body
+              (add-gfycat-headers)
+              (replace-found-gfys gfys))))))
+
 (defn responde-from-soup [opts]
   (as/go
    (let [request (:request opts)
@@ -47,7 +92,7 @@
                      (get-in response [:headers "content-type"])))
      (as/>!
       (:response-channel opts)
-      (assoc-in response
+      (assoc-in (gif->gfycat response opts)
                 [:headers "etag"]
                 (create-etag (:request opts)))))))
 
