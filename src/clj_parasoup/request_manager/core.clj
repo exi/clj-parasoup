@@ -39,7 +39,6 @@
   (string/replace body #"</body>" (str gfycat-embed-code "</body>")))
 
 (defn fetch-gfys [gifs opts]
-  (log/info "fetch gfys for" gifs)
    (into
     []
     (->>
@@ -53,14 +52,12 @@
      (remove #(nil? (:gfy %1))))))
 
 (defn replace-found-gfys [body gfy-map]
-  (log/info "replace gfys" gfy-map)
   (reduce
    (fn [body gfy]
      (let [new  (string/replace
                  body
                  (str "src=\"" (:gif gfy) "\"")
                  (str "class=\"gfyitem\" data-id=\"" (:gfy gfy) "\""))]
-       (log/info gfy)
        new))
    body
    gfy-map))

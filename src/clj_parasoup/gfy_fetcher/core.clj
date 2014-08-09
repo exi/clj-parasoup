@@ -21,7 +21,6 @@
 
 (defn fetch [db url]
   (let [uri (util/extract-gif-uri-from-url url)]
-    (log/info "gfy-fetch" url uri)
     (http/request {:url (str "http://upload.gfycat.com/transcode?fetchUrl=" url)
                    :method :get
                    :timeout 25000}
