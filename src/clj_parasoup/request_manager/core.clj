@@ -95,35 +95,41 @@
    gfy-map))
 
 (defn gif->gfycat [response opts]
-    (if (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
-      response
-      (let [body (:body response)
-            gfys (fetch-gfys (re-seq #"http://asset-[^\"]+\.gif" body) opts)]
-        (assoc
-          response
-          :body
-          (-> body
-              (add-gfycat-to-head)
-              (replace-found-gfys gfys))))))
+  (if (or (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
+          (not (string? (:body response))))
+    response
+    (let [body (:body response)
+          gfys (fetch-gfys (re-seq #"http://asset-[^\"]+\.gif" body) opts)]
+      (assoc
+        response
+        :body
+        (-> body
+            (add-gfycat-to-head)
+            (replace-found-gfys gfys))))))
+
+(defn apply-etag [response request]
+  (if (= 200 (:status response))
+    (assoc-in response [:headers "etag"] (create-etag request))
+    response))
 
 (defn responde-from-soup [opts]
   (as/go
-   (let [request (:request opts)
-         response (as/<! ((:proxy-fn opts)
-                          request
-                          (:domain opts)))]
-     (when (and (= 200 (:status response))
-                (asset-request? request))
-       (log-access request false)
-       (dbp/put-file (:db opts)
-                     (:uri request)
-                     (:body response)
-                     (get-in response [:headers "content-type"])))
-     (as/>!
-      (:response-channel opts)
-      (assoc-in (gif->gfycat response opts)
-                [:headers "etag"]
-                (create-etag (:request opts)))))))
+    (let [request (:request opts)
+          response (as/<! ((:proxy-fn opts)
+                           request
+                           (:domain opts)))]
+      (when (and (= 200 (:status response))
+                 (asset-request? request))
+        (log-access request false)
+        (dbp/put-file (:db opts)
+                      (:uri request)
+                      (:body response)
+                      (get-in response [:headers "content-type"])))
+      (as/>!
+        (:response-channel opts)
+        (-> response
+            (gif->gfycat opts)
+            (apply-etag request))))))
 
 (defn responde-with-304 [opts]
   (as/go (as/>!
