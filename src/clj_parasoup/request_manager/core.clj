@@ -83,7 +83,7 @@
       gifs)
      (remove #(nil? (:gfy %1))))))
 
-(defn replace-found-gfys [body gfy-map]
+(defn replace-found-gfys [body gfy-list]
   (reduce
    (fn [body gfy]
      (let [new  (string/replace
@@ -92,11 +92,14 @@
                  (str "class=\"gfyitem\" data-id=\"" (:gfy gfy) "\""))]
        new))
    body
-   gfy-map))
+   gfy-list))
 
 (defn gif->gfycat [response opts]
-  (if (or (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
-          (not (string? (:body response))))
+  (log/debug "gfycat" (get-in opts [:request :uri]))
+  (if (or (nil? (get-in response [:headers "content-type"]))
+          (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
+          (not (string? (:body response)))
+          (not (= 200 (:status response))))
     response
     (let [body (:body response)
           gfys (fetch-gfys (re-seq #"http://asset-[^\"]+\.gif" body) opts)]
@@ -108,11 +111,13 @@
             (replace-found-gfys gfys))))))
 
 (defn apply-etag [response request]
+  (log/debug "etag")
   (if (= 200 (:status response))
     (assoc-in response [:headers "etag"] (create-etag request))
     response))
 
 (defn responde-from-soup [opts]
+  (log/debug "from soup" (get-in opts [:request :uri]))
   (as/go
     (let [request (:request opts)
           response (as/<! ((:proxy-fn opts)
@@ -125,6 +130,7 @@
                       (:uri request)
                       (:body response)
                       (get-in response [:headers "content-type"])))
+      (log/debug "soup status" (:status response) (get-in opts [:request :uri]))
       (as/>!
         (:response-channel opts)
         (-> response
