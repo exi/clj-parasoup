@@ -20,16 +20,17 @@
 
 (defn fetch-file [db files-table file-name]
   (let [result (hb/get
-                db
-                files-table
-                file-name
-                {}
-                {:family #(keyword (String. %))
+                 db
+                 files-table
+                 file-name
+                 {}
+                 {:family #(keyword (String. %))
                  :value {:content-type {:* #(String. %)}}})]
-    (if (empty? result)
-      nil
-      {:byte-data (get-first-column-value result :byte-data)
-       :content-type (get-first-column-value result :content-type)})))
+    (when (not (empty? result))
+      (let [data {:byte-data (get-first-column-value result :byte-data)
+                  :content-type (get-first-column-value result :content-type)}]
+        (when (not-any? nil? (vals data))
+          data)))))
 
 (defn fetch-gfy [db files-table file-name]
   (let [result (hb/get
