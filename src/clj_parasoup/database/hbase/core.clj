@@ -26,7 +26,7 @@
                  {}
                  {:family #(keyword (String. %))
                  :value {:content-type {:* #(String. %)}}})]
-    (when (not (empty? result))
+    (when-not (empty? result)
       (let [data {:byte-data (get-first-column-value result :byte-data)
                   :content-type (get-first-column-value result :content-type)}]
         (when (not-any? nil? (vals data))
@@ -40,8 +40,7 @@
                 {:family :gfy-name}
                 {:family #(keyword (String. %))
                  :value {:gfy-name {:* #(String. %)}}})]
-    (if (empty? result)
-      nil
+    (when-not (empty? result)
       (get-first-column-value result :gfy-name))))
 
 (defn get-file [db files-table file-name]
