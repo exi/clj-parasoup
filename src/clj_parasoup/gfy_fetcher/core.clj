@@ -26,11 +26,15 @@
                    :timeout 25000}
                   #(on-gfy-response db uri %))))
 
+(defn skip? [db url]
+  (let [uri (util/extract-gif-uri-from-url url)]
+    (not (nil? (as/<!! (dbp/get-gfy db uri))))))
+
 (defn fetcher [chan db stop]
   (log/info "fetcher start")
   (as/go
    (loop [url (as/<! chan)]
      (when (and url (not @stop))
        (fetch db url)
-       (as/<! (as/timeout 30000))
+       (when (not (skip? db url)) (as/<! (as/timeout 30000)))
        (recur (as/<! chan))))))
