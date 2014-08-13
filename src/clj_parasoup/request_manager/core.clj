@@ -8,7 +8,7 @@
             [clojure.tools.logging :as log]
             [digest]))
 
-(def gfycat-embed-code "<script>
+(def gfycat-embed-code "<script type=\"text/javascript\">
   var lastGfy = new Date().getTime();
   function removeGfyItems() {
     var items = document.querySelectorAll('.gfyitem');
@@ -27,9 +27,16 @@
   function loadGfy() {
     if (typeof gfyCollection !== 'undefined') return;
     console.log(\"gfy!\");
-    (function(d, t){var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-    g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';
-    s.parentNode.insertBefore(g, s);}(document, 'script'));
+    (function(d, t){
+      var g = d.createElement(t);
+      var s = d.getElementsByTagName(t)[0];
+      if (typeof s === 'undefined' || typeof s.parentNode === 'undefined') {
+        return;
+      }
+
+      g.src = 'http://assets.gfycat.com/js/gfyajax-0.517d.js';
+      s.parentNode.insertBefore(g, s);}(document, 'script')
+    );
     document.body.addEventListener('DOMSubtreeModified', updateGfy, false);
   }
   </script>")
@@ -99,7 +106,8 @@
   (if (or (nil? (get-in response [:headers "content-type"]))
           (not (re-matches #".*text/html.*" (get-in response [:headers "content-type"])))
           (not (string? (:body response)))
-          (not (= 200 (:status response))))
+          (not (= 200 (:status response)))
+          (re-matches #"/remote/.*" (get-in opts [:request :uri])))
     response
     (let [body (:body response)
           gfys (fetch-gfys (re-seq #"http://asset-[^\"]+\.gif" body) opts)]
