@@ -1,5 +1,6 @@
 (ns clj-parasoup.http-proxy.core
-  (:import [org.jboss.netty.buffer ChannelBuffer])
+  (:import [org.jboss.netty.buffer ChannelBuffer]
+           [org.apache.commons.io IOUtils])
   (:require [clojure.core.async :as as]
             [clojure.string :as string]
             [org.httpkit.client :as http]
@@ -14,6 +15,10 @@
 
 (defn text-https->http [text] (string/replace text "https://" "http://"))
 (defn text-http->https[text] (string/replace text "http://" "https://"))
+(defn unwrap-bytes [body]
+  (cond
+    (instance? java.io.InputStream body) (IOUtils/toByteArray body)
+    :else body))
 
 (defn header-domain->soup
   ([domain header] (header-domain->soup domain header false))
@@ -63,7 +68,8 @@
                           (->> (:body response)
                                (text-soup->domain domain)
                                (text-https->http))
-                          (:body response))))
+                          (->> (:body response)
+                               (unwrap-bytes)))))
 
 (defn format-url [request headers scheme]
   (format "%s%s%s%s"
@@ -95,7 +101,7 @@
                     :byte-array)
               :body (wrap-body (:body request))
               :follow-redirects false
-              :timeout 10000}
+              :timeout 60000}
         response-channel (as/chan)]
     (as/go
       (let [response (as/<! (wrap-request opts))

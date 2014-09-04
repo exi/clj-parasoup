@@ -18,6 +18,7 @@
                  [org.clojure/data.codec "0.1.0"]
                  [com.taoensso/nippy "2.6.3"]
                  [digest "1.4.4"]
+                 [commons-io/commons-io "2.4"]
                  [org.clojure/data.json "0.2.5"]]
 
   :test-paths ["test" "test-resources"]
