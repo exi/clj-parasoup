@@ -90,6 +90,16 @@
     (.toByteBuffer body)
     body))
 
+(defn send-response [response-channel response]
+  (as/go (as/>! response-channel (reduce
+                                   #(assoc %1 %2 (get response %2))
+                                   {}
+                                   [:status :headers :body]))))
+
+(defn send-error [response-channel err]
+  (log/debug "got error on response" err)
+  (as/go (as/close! response-channel)))
+
 (defn relay [request domain]
   (let [scheme (request->scheme request)
         headers (umap/map-over-map-keys (:headers request) string/lower-case)
@@ -106,8 +116,7 @@
     (as/go
       (let [response (as/<! (wrap-request opts))
             processed-response (postprocess-soup-response response domain)]
-        (as/>! response-channel (reduce
-                                  #(assoc %1 %2 (get processed-response %2))
-                                  {}
-                                  [:status :headers :body]))))
+        (if (nil? (:error response))
+          (send-response response-channel processed-response)
+          (send-error response-channel (:error response)))))
     response-channel))

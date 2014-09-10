@@ -127,7 +127,8 @@
 (defn responde-from-soup [opts]
   (log/debug "from soup" (get-in opts [:request :uri]))
   (as/go
-    (let [request (:request opts)
+    (let [response-channel (:response-channel opts)
+          request (:request opts)
           response (as/<! ((:proxy-fn opts)
                            request
                            (:domain opts)))]
@@ -139,11 +140,13 @@
                       (:body response)
                       (get-in response [:headers "content-type"])))
       (log/debug "soup status" (:status response) (get-in opts [:request :uri]))
-      (as/>!
-        (:response-channel opts)
-        (-> response
-            (gif->gfycat opts)
-            (apply-etag request))))))
+      (if (nil? response)
+        (as/>! response-channel {:body "Soup.io seems to have a problem" :status 500})
+        (as/>!
+          response-channel
+          (-> response
+              (gif->gfycat opts)
+              (apply-etag request)))))))
 
 (defn responde-with-304 [opts]
   (as/go (as/>!
