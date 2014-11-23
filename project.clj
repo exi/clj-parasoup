@@ -28,7 +28,8 @@
                                   [puppetlabs/kitchensink ~ks-version :classifier "test" :scope "test"]
                                   [clj-http "0.7.9"]
                                   [org.clojure/tools.trace "0.7.8"]
-                                  [ring-mock "0.1.5"]]}}
+                                  [ring-mock "0.1.5"]]}
+             :uberjar {:aot [puppetlabs.trapperkeeper.main]}}
 
   :aliases {"tk" ["trampoline" "run" "--config" "resources/config.ini" "--bootstrap-config" "resources/bootstrap.cfg"]}
 
