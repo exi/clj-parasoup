@@ -33,8 +33,9 @@
 (defn fetcher [chan db stop]
   (log/info "fetcher start")
   (as/go
-   (loop [url (as/<! chan)]
-     (when (and url (not @stop))
-       (fetch db url)
-       (when (not (skip? db url)) (as/<! (as/timeout 30000)))
-       (recur (as/<! chan))))))
+    (loop [url (as/<! chan)]
+          (when (and url (not @stop))
+            (when (not (skip? db url))
+              (fetch db url)
+              (as/<! (as/timeout 30000)))
+            (recur (as/<! chan))))))
