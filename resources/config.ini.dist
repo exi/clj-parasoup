@@ -6,8 +6,10 @@ port = 8080
 backlog = 1024
 
 [parasoup]
-real-domain = parasoup.de:8080
+domain = parasoup.de
+port = 80
 
 [hbase]
 files-table = parasoup_files
+tokens-table = parasoup_tokens
 hbase-site-xml = /mnt/btrfs/hadoop/local/hbase-0.98.3-hadoop2/conf/hbase-site.xml
