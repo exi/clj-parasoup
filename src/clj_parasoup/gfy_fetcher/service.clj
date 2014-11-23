@@ -19,10 +19,13 @@
          (log/info "Starting gfyfetcher")
          (let [chan (as/chan (as/sliding-buffer 1000))
                stop (atom false)]
-           (core/fetcher
-            chan
-            (get-service this :DatabaseService)
-            stop)
+           (if (not (get #{"true" "yes" "1"} (get-in-config [:gfy-fetcher :disable])))
+             (core/fetcher
+               chan
+               (get-service this :DatabaseService)
+               stop)
+             (log/info "gfyfetcher disabled by configuration")
+             )
            (assoc context :stop stop :chan chan)))
   (stop [this context]
         (reset! (:stop context) false)

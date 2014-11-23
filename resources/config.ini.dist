@@ -13,3 +13,6 @@ port = 80
 files-table = parasoup_files
 tokens-table = parasoup_tokens
 hbase-site-xml = /mnt/btrfs/hadoop/local/hbase-0.98.3-hadoop2/conf/hbase-site.xml
+
+[gfy-fetcher]
+;disable = false
