@@ -16,3 +16,7 @@ hbase-site-xml = /mnt/btrfs/hadoop/local/hbase-0.98.3-hadoop2/conf/hbase-site.xm
 
 [gfy-fetcher]
 ;disable = false
+
+[http-auth]
+username = myuser
+password = mypassword
